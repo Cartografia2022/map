@@ -313,7 +313,7 @@ const opcionesConTipo = [
         resolve({
           nombre,
           tipo,
-          descripcion: descModal.value
+          direccion: descModal.value
         });
       };
 
@@ -338,20 +338,20 @@ const opcionesConTipo = [
     const respuesta = await mostrarModalConTipo("ACUEDUCTO", "SITIO");
     if (!respuesta) return;
 
-    const { nombre, tipo, descripcion } = respuesta;
+    const { nombre, tipo, direccion } = respuesta;
 
     // Guardar propiedades
     layer.feature = {
       type: "Feature",
-      properties: { nombre, tipo, descripcion }
+      properties: { nombre, tipo, direccion }
     };
 
     // Popup
     const center = layerCenter(layer);
     let popupContent = `<strong>Nombre:</strong> ${nombre}<br/>` +
                        `<strong>Tipo:</strong> ${tipo}<br/>`;
-    if (descripcion && descripcion.trim() !== "") {
-      popupContent += `<strong>Descripción:</strong> ${descripcion}<br/>`;
+    if (direccion && direccion.trim() !== "") {
+      popupContent += `<strong>Descripción:</strong> ${direccion}<br/>`;
     }
     if (layer instanceof L.Marker) {
       popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank">
@@ -372,24 +372,24 @@ const opcionesConTipo = [
     editedLayers.eachLayer(layer => {
       initNombre = layer.feature?.properties?.nombre || initNombre;
       initTipo   = layer.feature?.properties?.tipo || initTipo;
-      initDesc   = layer.feature?.properties?.descripcion || "";
+      initDesc   = layer.feature?.properties?.direccion || "";
     });
 
     const respuesta = await mostrarModalConTipo(initNombre, initTipo, initDesc);
     if (!respuesta) return;
 
     editedLayers.eachLayer(layer => {
-      const { nombre, tipo, descripcion } = respuesta;
+      const { nombre, tipo, direccion } = respuesta;
       if (!layer.feature) layer.feature = { type: "Feature", properties: {} };
       layer.feature.properties.nombre = nombre;
       layer.feature.properties.tipo = tipo;
-      layer.feature.properties.descripcion = descripcion;
+      layer.feature.properties.direccion = direccion;
 
       const center = layerCenter(layer);
       let popupContent = `<strong>Nombre:</strong> ${nombre}<br/>` +
                          `<strong>Tipo:</strong> ${tipo}<br/>`;
-      if (descripcion && descripcion.trim() !== "") {
-        popupContent += `<strong>Descripción:</strong> ${descripcion}<br/>`;
+      if (direccion && direccion.trim() !== "") {
+        popupContent += `<strong>Descripción:</strong> ${direccion}<br/>`;
       }
       if (layer instanceof L.Marker) {
         popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank">
@@ -422,13 +422,13 @@ const opcionesConTipo = [
         onEachFeature: function (feature, layer) {
           const nombre = feature.properties?.nombre || "Sin nombre";
           const tipo = feature.properties?.tipo || "";
-          const descripcion = feature.properties?.descripcion || "";
+          const direccion = feature.properties?.direccion || "";
           const center = layerCenter(layer);
 
           let popupContent = `<strong>Nombre:</strong> ${nombre}<br/>`;
           if (tipo) popupContent += `<strong>Tipo:</strong> ${tipo}<br/>`;
-          if (descripcion && descripcion.trim() !== "") {
-            popupContent += `<strong>Descripción:</strong> ${descripcion}<br/>`;
+          if (direccion && direccion.trim() !== "") {
+            popupContent += `<strong>Descripción:</strong> ${direccion}<br/>`;
           }
           if (layer instanceof L.Marker) {
             popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank">
@@ -476,6 +476,7 @@ const opcionesConTipo = [
 </script>
 </body>
 </html>
+
 
 
 
