@@ -43,14 +43,9 @@
       font-family: sans-serif;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
-    #modal select, #modal button, #modal textarea, #modal input {
+    #modal select, #modal button, #modal textarea {
       margin-top: 10px;
       width: 100%;
-    }
-    input[readonly] {
-      background: #f0f0f0;
-      cursor: not-allowed;
-      color: #555;
     }
     .streetview-btn {
       display: inline-block;
@@ -83,10 +78,6 @@
   <div id="modal-content">
     <label for="modal-select">Selecciona un nombre:</label>
     <select id="modal-select"></select>
-    
-    <label for="modal-tipo">Tipo:</label>
-    <input type="text" id="modal-tipo" readonly>
-
     <label for="modal-desc">Descripción (opcional):</label>
     <textarea id="modal-desc" rows="3" placeholder="Escribe una descripción..."></textarea>
     <button id="modal-confirm">Confirmar</button>
@@ -101,68 +92,6 @@
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
 <script>
-  // ✅ Diccionario sin claves repetidas
-  const categorias = {
-    "ALCALDIA": "INSTITUCION",
-    "BOMBEROS": "INSTITUCION",
-    "CAMARA DE COMERCIO": "INSTITUCION",
-    "COMISARIA DE FAMILIA": "INSTITUCION",
-    "CONTRALORIA": "INSTITUCION",
-    "CRUZ ROJA": "INSTITUCION",
-    "DEFENSA CIVIL": "INSTITUCION",
-    "DEFENSORIA DEL PUEBLO": "INSTITUCION",
-    "DIAN": "INSTITUCION",
-    "EMPRESA MUNICIPAL": "INSTITUCION",
-    "EMPRESA PRIVADA": "INSTITUCION",
-    "ENTIDAD FINANCIERA": "INSTITUCION",
-    "ENTIDAD ECLESIASTICA": "INSTITUCION",
-    "ENTIDADES DE SALUD": "INSTITUCION",
-    "ENTIDADES EDUCATIVA": "INSTITUCION",
-    "FISCALIA": "INSTITUCION",
-    "GOBERNACION": "INSTITUCION",
-    "ICBF": "INSTITUCION",
-    "INSPECCION DE POLICIA": "INSTITUCION",
-    "JUZGADO": "INSTITUCION",
-    "MINISTERIO": "INSTITUCION",
-    "NOTARIA": "INSTITUCION",
-    "PERSONERIA": "INSTITUCION",
-    "PROCURADURIA": "INSTITUCION",
-    "REGISTRADURIA": "INSTITUCION",
-    "TELECOMUNICACIONES": "INSTITUCION",
-
-    "ACUEDUCTO": "SITIO",
-    "AEROPUERTO": "SITIO",
-    "ALCANTARILLA": "SITIO",
-    "ANCIANATO": "SITIO",
-    "ANTENA": "SITIO",
-    "CANCHA": "SITIO",
-    "CANTERA": "SITIO",
-    "CAÑO": "SITIO",
-    "CARCEL": "SITIO",
-    "CASA DEL ALCALDE": "SITIO",
-    "CEMENTERIO": "SITIO",
-    "CERRO": "SITIO",
-    "COLISEO": "SITIO",
-    "CRUCE": "SITIO",
-    "ESTABLECIMIENTO PÚBLICO": "SITIO",
-    "ESTACIÓN DE FERROCARRIL": "SITIO",
-    "ESTACIÓN DE GASOLINA": "SITIO",
-    "ESTADIO": "SITIO",
-    "GASODUCTO": "SITIO",
-    "HELIPUERTO": "SITIO",
-    "LAGUNA": "SITIO",
-    "MATADERO": "SITIO",
-    "MUELLE": "SITIO",
-    "OLEODUCTO": "SITIO",
-    "PARQUE": "SITIO",
-    "PARQUEADERO": "SITIO",
-    "PEAJE": "SITIO",
-    "PISTA DE ATERRIZAJE": "SITIO",
-    "PLAZA DE MERCADO": "SITIO",
-    "PLAZA DE TOROS": "SITIO",
-    "POLIDEPORTIVO": "SITIO"
-  };
-
   const map = L.map('map').setView([5.5, -73.4], 9);
   const drawnItems = new L.FeatureGroup();
   const labelLayer = new L.LayerGroup();
@@ -171,13 +100,47 @@
   L.Control.geocoder({ defaultMarkGeocode: false })
     .on('markgeocode', e => map.fitBounds(e.geocode.bbox)).addTo(map);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  const baseMaps = {
+    "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map),
+    "Esri Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri'
+    }),
+    "CartoDB Light": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; CartoDB'
+    }),
+    "Stamen Toner": L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+      attribution: 'Map tiles by Stamen Design'
+    }),
+    "Google Earth Híbrido": L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      subdomains: ['mt0','mt1','mt2','mt3'],
+      attribution: '&copy; Google'
+    })
+  };
+
+  const overlayMaps = {
+    "Elementos Dibujados": drawnItems,
+    "Etiquetas": labelLayer
+  };
+
+  L.control.layers(baseMaps, overlayMaps).addTo(map);
   map.addLayer(drawnItems);
   map.addLayer(labelLayer);
 
+  L.control.measure({ primaryLengthUnit: 'meters', secondaryLengthUnit: 'kilometers' }).addTo(map);
+
   const drawControl = new L.Control.Draw({
     edit: { featureGroup: drawnItems },
-    draw: { polygon: true, polyline: true, rectangle: false, circle: false, marker: true }
+    draw: {
+      polygon: true,
+      polyline: true,
+      rectangle: false,
+      circle: false,
+      circlemarker: false,
+      marker: true
+    }
   });
   map.addControl(drawControl);
 
@@ -187,39 +150,52 @@
       .setLatLng(layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter());
     labelLayer.addLayer(tooltip);
     layerTooltips.set(layer._leaflet_id, tooltip);
+    layer.on('move', () => {
+      tooltip.setLatLng(layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter());
+    });
   }
 
+  function updateTooltip(layer) {
+    const tooltip = layerTooltips.get(layer._leaflet_id);
+    if (tooltip) {
+      tooltip.setLatLng(layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter());
+      tooltip.setContent(layer.feature?.properties?.nombre || "Sin nombre");
+    }
+  }
+
+  // MODAL MODIFICADO
   function mostrarModal(opciones, nombreActual, descActual = "") {
     const modal = document.getElementById('modal');
     const selectModal = document.getElementById('modal-select');
     const descModal = document.getElementById('modal-desc');
-    const tipoInput = document.getElementById('modal-tipo');
+    const botonConfirm = document.getElementById('modal-confirm');
+    const botonCancel = document.getElementById('modal-cancel');
     selectModal.innerHTML = '';
+
+    // Primera opción es el nombre actual
+    const optionActual = document.createElement('option');
+    optionActual.value = nombreActual;
+    optionActual.textContent = nombreActual;
+    selectModal.appendChild(optionActual);
 
     opciones.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt;
       option.textContent = opt;
-      if (opt === nombreActual) option.selected = true;
       selectModal.appendChild(option);
     });
-
-    function actualizarTipo() {
-      const nombreSel = selectModal.value;
-      tipoInput.value = categorias[nombreSel] || "OTRO";
-    }
-    selectModal.onchange = actualizarTipo;
-    actualizarTipo();
 
     descModal.value = descActual || "";
 
     return new Promise(resolve => {
       modal.style.display = 'block';
-      document.getElementById('modal-confirm').onclick = () => {
+
+      botonConfirm.onclick = () => {
         modal.style.display = 'none';
-        resolve({ nombre: selectModal.value, descripcion: descModal.value, tipo: tipoInput.value });
+        resolve({nombre: selectModal.value, descripcion: descModal.value});
       };
-      document.getElementById('modal-cancel').onclick = () => {
+
+      botonCancel.onclick = () => {
         modal.style.display = 'none';
         resolve(null);
       };
@@ -228,24 +204,179 @@
 
   map.on(L.Draw.Event.CREATED, async function (e) {
     const layer = e.layer;
-    const opciones = Object.keys(categorias);
-    const respuesta = await mostrarModal(opciones, opciones[0]);
-    if (!respuesta) return;
+    if (layer instanceof L.Polygon && turf.kinks(layer.toGeoJSON()).features.length > 0) {
+      await mostrarModal(["ERROR: El polígono se cruza a sí mismo."], "ERROR");
+      return;
+    }
 
-    layer.feature = { type: "Feature", properties: { 
-      nombre: respuesta.nombre, 
-      descripcion: respuesta.descripcion, 
-      tipo: respuesta.tipo 
-    }};
+const opciones = [
+  "ACUEDUCTO", "AEROPUERTO", "ALCALDIA", "ALCANTARILLA", "ANCIANATO",
+  "ANTENA", "BASE AÉREA", "BASE MILITAR", "BASE NAVAL", "BATALLÓN",
+  "BODEGA DE COMBUSTIBLE", "BODEGA DE GRANOS", "BOMBREROS", "CAMARA DE COMERCIO",
+  "CANCHA", "CANTERA", "CARCEL", "CASA DEL ALCALDE", "CEMENTERIO",
+  "CENTRAL DE ABASTOS", "CENTRO COMERCIAL", "CENTRO CULTURAL",
+  "CENTRO DE CONVENCIONES", "CENTRO DE DATOS", "CENTRO DE ENTRENAMIENTO POLICIAL",
+  "CENTRO DE INTELIGENCIA", "CENTRO DE SALUD RURAL", "CERRO", "CLÍNICA PRIVADA",
+  "COLEGIO", "COLISEO", "COMISARIA DE FAMILIA", "CONSULADO", "CONTRALORIA",
+  "CORTE SUPREMA", "CRUZ ROJA", "CRUZ VERDE", "DEFENSA CIVIL",
+  "DEFENSORIA DEL PUEBLO", "DEPÓSITO ADUANERO", "DIAN", "EMBAJADA",
+  "EMPRESA MUNICIPAL", "EMPRESA PRIVADA", "ENTIDAD FINACIERA",
+  "ENTIDADES EDUCATIVA", "ESTABLECIMIENTO PÚBLICO", "ESTADIO",
+  "ESTACIÓN DE BOMBEO", "ESTACIÓN DE FERROCARRIL", "ESTACIÓN DE GASOLINA",
+  "ESTACIÓN DE METRO", "ESTACIÓN DE POLICIA", "ESTACIÓN SATELITAL",
+  "FABRICA DE ALIMENTOS", "FISCALIA", "GASODUCTO", "GOBERNACION",
+  "HANGAR AÉREO", "HELIPUERTO", "HOSPITAL", "ICBF", "IGLESIA",
+  "INSPECCION DE POLICIA", "INTERCAMBIADOR VIAL", "JARDÍN INFANTIL",
+  "JUZGADO", "LABORATORIO FARMACÉUTICO", "MATADERO", "MINA", "MINISTERIO",
+  "MONUMENTO HISTÓRICO", "MUELLE", "MUSEO", "NOTARIA", "OLEODUCTO",
+  "OTRAS", "PARQUE", "PARQUEADERO", "PASO FRONTERIZO", "PEAJE",
+  "PERSONERIA", "PISTA DE ATERRIZAJE", "PLANTA DE GAS", "PLANTA DE TRATAMIENTO DE RESIDUOS",
+  "PLANTA EÓLICA", "PLANTA EMBOTELLADORA", "PLANTA HIDROELÉCTRICA",
+  "PLANTA INDUSTRIAL", "PLANTA SOLAR", "PLANTA TERMOELÉCTRICA",
+  "PLAZA CENTRAL", "PLAZA DE MERCADO", "PLAZA DE TOROS", "POLIDEPORTIVO",
+  "POSIBLE CONCENTRACIÓN SUBVERSIVA", "POSIBLE UBICACIÓN DE CILINDROS",
+  "POSIBLE UBICACIÓN M-60", "POTRERO", "PROCURADURIA", "PUENTE",
+  "PUESTO DE MIGRACIÓN", "PUNTOS EMBOSCADA", "QUEBRADA", "REGISTRADURIA",
+  "RESGUADO INDÍGENA", "RIO", "RUTA DE DESPLIEQUE", "SALIDA MUNICIPIO",
+  "SALON COMUNAL", "SEDE ORGANISMO INTERNACIONAL", "SEDE PARTIDO POLÍTICO",
+  "SILO", "SISTEMA DE RADAR", "SUBESTACIÓN DE POLICIA", "SUBESTACIÓN ELÉCTRICA",
+  "TALLER FERROVIARIO", "TEATRO PRINCIPAL", "TELECOMUNICACIONES",
+  "TERMINAL DE TRANSPORTE", "TERMINAL FLUVIAL", "TERMINAL MARÍTIMO",
+  "TORRE", "TORRE DE CONTROL AÉREO", "TORRE DE VIGILANCIA",
+  "TRAMO CRÍTICO", "TRAPICHE", "TRIBUNAL SUPERIOR", "TÚNEL",
+  "UNIVERSIDAD", "VÍA DE ACCESO", "VIADUCTO", "ZONA BOSCOSA",
+  "ZONA DE CARGA", "ZONA FRANCA", "ZONA INDUSTRIAL", "ZONA LOGÍSTICA",
+  "ZONA TURÍSTICA", "ZONAS DE DESEMBARQUE"
+];
 
-    let popupContent = `<strong>Nombre:</strong> ${respuesta.nombre}<br/>`;
-    popupContent += `<strong>Tipo:</strong> ${respuesta.tipo}<br/>`;
-    if (respuesta.descripcion.trim()) popupContent += `<strong>Descripción:</strong> ${respuesta.descripcion}<br/>`;
+
+
+    const respuesta = await mostrarModal(opciones, "ACUEDUCTO");
+
+    if (!respuesta) return; // Cancelado
+
+    const nombre = respuesta.nombre;
+    const descripcion = respuesta.descripcion;
+    layer.feature = { type: "Feature", properties: { nombre, descripcion } };
+    const center = layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter();
+
+    let popupContent = `<strong>Nombre:</strong> ${nombre}<br/>`;
+    if (descripcion && descripcion.trim() !== "") {
+      popupContent += `<strong>Descripción:</strong> ${descripcion}<br/>`;
+    }
+    if (layer instanceof L.Marker) {
+      popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank">
+                         <div class="streetview-btn">Abrir Street View</div></a>`;
+    }
 
     layer.bindPopup(popupContent);
     drawnItems.addLayer(layer);
-    createTooltip(respuesta.nombre, layer);
+    createTooltip(nombre, layer);
   });
+
+  map.on(L.Draw.Event.EDITED, async function (e) {
+    const editedLayers = e.layers;
+    let nombre = "Sin nombre";
+    let descripcion = "";
+
+    editedLayers.eachLayer(layer => {
+      nombre = layer.feature.properties.nombre || "Sin nombre";
+      descripcion = layer.feature.properties.descripcion || "";
+    });
+
+    const opciones = ["ACUEDUCTO", "AEROPUERTO", "ALCALDIA", "ALCANTARILLA", "ANCIANATO", "ANTENA", "BOMBREROS", "CAMARA DE COMERCIO", "CANCHA", "CANTERA", "CAÑO", "CARCEL", "CASA DEL ALCALDE", "CEMENTERIO", "CERRO", "COLISEO", "COMISARIA DE FAMILIA", "CONTRALORIA", "CRUCE", "CRUZ ROJA", "DEFENSA CIVIL", "DEFENSORIA DEL PUEBLO", "DIAN", "EMPRESA MUNICIPAL", "EMPRESA PRIVADA", "ENTIDAD FINACIERA", "ENTIDADES EDUCATIVA", "ESTABLECIMIENTO PÚBLICO", "ESTACIÓN DE FERROCARRIL", "ESTACIÓN DE GASOLINA", "ESTACIÓN DE POLICIA", "ESTADIO", "FISCALIA", "GASODUCTO", "GOBERNACION", "HELIPUERTO", "HOSPITAL", "ICBF", "IGLESIA", "INSPECCION DE POLICIA", "JUZGADO", "LAGUNA", "MATADERO", "MINISTERIO", "MUELLE", "NOTARIA", "OLEODUCTO", "PARQUE", "PARQUEADERO", "PEAJE", "PERSONERIA", "PISTA DE ATERRIZAJE", "PLAZA DE MERCADO", "PLAZA DE TOROS", "POLIDEPORTIVO", "POSIBLE CONCENTRACIÓN SUBVERSIVA", "POSIBLE UBICACIÓN DE CILINDROS", "POSIBLE UBICACIÓN M-60", "POTRERO", "POZO", "PROCURADURIA", "PUENTE", "PUNTOS EMBOSCADA", "QUEBRADA", "REGISTRADURIA", "RESGUADO INDÍGENA", "RIO", "RUTA DE DESPLIEQUE", "SALON COMUNAL", "SUBESTACIÓN DE POLICIA", "SUBESTACIÓN ELÉCTRICA", "TELECOMUNICACIONES", "TERMINAL DE TRANSPORTE", "TORRE", "TRAMO CRÍTICO", "TRAPICHE", "TÚNEL", "VÍA DE ACCESO", "VIADUCTO", "ZONA BOSCOSAZONA", "ZONA INSDUSTRIAL", "ZONAS DE DESEMBARQUE"];
+    const respuesta = await mostrarModal(opciones, nombre, descripcion);
+
+    if (!respuesta) return; // Cancelado
+
+    editedLayers.eachLayer(layer => {
+      const nombre = respuesta.nombre;
+      const descripcion = respuesta.descripcion;
+      layer.feature.properties.nombre = nombre;
+      layer.feature.properties.descripcion = descripcion;
+      const center = layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter();
+      let popupContent = `<strong>Nombre:</strong> ${nombre}<br/>`;
+      if (descripcion && descripcion.trim() !== "") {
+        popupContent += `<strong>Descripción:</strong> ${descripcion}<br/>`;
+      }
+      if (layer instanceof L.Marker) {
+        popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank">
+                           <div class="streetview-btn">Abrir Street View</div></a>`;
+      }
+      layer.bindPopup(popupContent);
+      updateTooltip(layer);
+    });
+  });
+
+  map.on(L.Draw.Event.DELETED, function (e) {
+    e.layers.eachLayer(layer => {
+      const tooltip = layerTooltips.get(layer._leaflet_id);
+      if (tooltip) {
+        labelLayer.removeLayer(tooltip);
+        layerTooltips.delete(layer._leaflet_id);
+      }
+    });
+  });
+
+  document.getElementById('upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const geojson = JSON.parse(e.target.result);
+      L.geoJSON(geojson, {
+        onEachFeature: function (feature, layer) {
+          const nombre = feature.properties?.nombre || "Sin nombre";
+          const descripcion = feature.properties?.descripcion || "";
+          const center = layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter();
+          let popupContent = `<strong>Nombre:</strong> ${nombre}<br/>`;
+          if (descripcion && descripcion.trim() !== "") {
+            popupContent += `<strong>Descripción:</strong> ${descripcion}<br/>`;
+          }
+          if (layer instanceof L.Marker) {
+            popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank">
+                               <div class="streetview-btn">Abrir Street View</div></a>`;
+          }
+          layer.feature = feature;
+          layer.bindPopup(popupContent);
+          drawnItems.addLayer(layer);
+          createTooltip(nombre, layer);
+        }
+      });
+    };
+    reader.readAsText(file);
+  });
+
+  function downloadGeoJSON() {
+    const data = drawnItems.toGeoJSON();
+    if (!data.features.length) {
+      mostrarModal(["No hay elementos para exportar."], "Advertencia");
+      return;
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mapa.geojson";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  fetch('Municipios.geojson')
+    .then(res => res.json())
+    .then(data => {
+      const capaBoyaca = L.geoJSON(data, {
+        style: { color: '#000000', weight: 2, fillOpacity: 0 }
+      });
+      capaBoyaca.addTo(map);
+      overlayMaps["Municipios"] = capaBoyaca;
+    });
 </script>
 </body>
 </html>
+
+
+
+
+
+
