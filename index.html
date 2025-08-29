@@ -351,7 +351,7 @@ const opcionesConTipo = [
     let popupContent = `<strong>Nombre:</strong> ${nombre}<br/>` +
                        `<strong>Tipo:</strong> ${tipo}<br/>`;
     if (direccion && direccion.trim() !== "") {
-      popupContent += `<strong>Descripción:</strong> ${direccion}<br/>`;
+      popupContent += `<strong>Dirección:</strong> ${direccion}<br/>`;
     }
     if (layer instanceof L.Marker) {
       popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank">
@@ -389,7 +389,7 @@ const opcionesConTipo = [
       let popupContent = `<strong>Nombre:</strong> ${nombre}<br/>` +
                          `<strong>Tipo:</strong> ${tipo}<br/>`;
       if (direccion && direccion.trim() !== "") {
-        popupContent += `<strong>Descripción:</strong> ${direccion}<br/>`;
+        popupContent += `<strong>Dirección:</strong> ${direccion}<br/>`;
       }
       if (layer instanceof L.Marker) {
         popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank">
@@ -428,7 +428,7 @@ const opcionesConTipo = [
           let popupContent = `<strong>Nombre:</strong> ${nombre}<br/>`;
           if (tipo) popupContent += `<strong>Tipo:</strong> ${tipo}<br/>`;
           if (direccion && direccion.trim() !== "") {
-            popupContent += `<strong>Descripción:</strong> ${direccion}<br/>`;
+            popupContent += `<strong>Dirección:</strong> ${direccion}<br/>`;
           }
           if (layer instanceof L.Marker) {
             popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank">
@@ -476,6 +476,7 @@ const opcionesConTipo = [
 </script>
 </body>
 </html>
+
 
 
 
