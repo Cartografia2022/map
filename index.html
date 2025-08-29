@@ -184,9 +184,12 @@
 const opcionesConTipo = [
   // INSTITUCIONES
   { nombre: "ALCALDIA", tipo: "INSTITUCION" },
-  { nombre: "ESTACION DE POLICIA", tipo: "INSTITUCION" },
+  { nombre: "BIBLIOTECA PUBLICA", tipo: "INSTITUCION" },
   { nombre: "BOMBEROS", tipo: "INSTITUCION" },
   { nombre: "CAMARA DE COMERCIO", tipo: "INSTITUCION" },
+  { nombre: "CARCEL MUNICIPAL", tipo: "INSTITUCION" },
+  { nombre: "CLINICA", tipo: "INSTITUCION" },
+  { nombre: "COLEGIO", tipo: "INSTITUCION" },
   { nombre: "COMISARIA DE FAMILIA", tipo: "INSTITUCION" },
   { nombre: "CONTRALORIA", tipo: "INSTITUCION" },
   { nombre: "CRUZ ROJA", tipo: "INSTITUCION" },
@@ -199,30 +202,24 @@ const opcionesConTipo = [
   { nombre: "ENTIDAD FINACIERA", tipo: "INSTITUCION" },
   { nombre: "ENTIDADES DE SALUD", tipo: "INSTITUCION" },
   { nombre: "ENTIDADES EDUCATIVA", tipo: "INSTITUCION" },
+  { nombre: "EPS", tipo: "INSTITUCION" },
+  { nombre: "ESTACION DE POLICIA", tipo: "INSTITUCION" },
   { nombre: "FISCALIA", tipo: "INSTITUCION" },
   { nombre: "GOBERNACION", tipo: "INSTITUCION" },
+  { nombre: "HOSPITAL", tipo: "INSTITUCION" },
   { nombre: "ICBF", tipo: "INSTITUCION" },
   { nombre: "INSPECCION DE POLICIA", tipo: "INSTITUCION" },
   { nombre: "JUZGADO", tipo: "INSTITUCION" },
   { nombre: "MINISTERIO", tipo: "INSTITUCION" },
+  { nombre: "MUSEO", tipo: "INSTITUCION" },
   { nombre: "NOTARIA", tipo: "INSTITUCION" },
+  { nombre: "OFICINA DE CORREOS", tipo: "INSTITUCION" },
   { nombre: "PERSONERIA", tipo: "INSTITUCION" },
   { nombre: "PROCURADURIA", tipo: "INSTITUCION" },
   { nombre: "REGISTRADURIA", tipo: "INSTITUCION" },
-  { nombre: "TELECOMUNICACIONES", tipo: "INSTITUCION" },
-
-  // Instituciones adicionales
-  { nombre: "COLEGIO", tipo: "INSTITUCION" },
-  { nombre: "UNIVERSIDAD", tipo: "INSTITUCION" },
-  { nombre: "HOSPITAL", tipo: "INSTITUCION" },
-  { nombre: "EPS", tipo: "INSTITUCION" },
-  { nombre: "CLINICA", tipo: "INSTITUCION" },
-  { nombre: "CENTRO CULTURAL", tipo: "INSTITUCION" },
-  { nombre: "BIBLIOTECA PUBLICA", tipo: "INSTITUCION" },
-  { nombre: "MUSEO", tipo: "INSTITUCION" },
-  { nombre: "CARCEL MUNICIPAL", tipo: "INSTITUCION" },
   { nombre: "SECRETARIA DE TRANSITO", tipo: "INSTITUCION" },
-  { nombre: "OFICINA DE CORREOS", tipo: "INSTITUCION" },
+  { nombre: "TELECOMUNICACIONES", tipo: "INSTITUCION" },
+  { nombre: "UNIVERSIDAD", tipo: "INSTITUCION" },
 
   // SITIOS
   { nombre: "ACUEDUCTO", tipo: "SITIO" },
@@ -236,17 +233,24 @@ const opcionesConTipo = [
   { nombre: "CARCEL", tipo: "SITIO" },
   { nombre: "CASA DEL ALCALDE", tipo: "SITIO" },
   { nombre: "CEMENTERIO", tipo: "SITIO" },
+  { nombre: "CENTRO COMERCIAL", tipo: "SITIO" },
   { nombre: "CERRO", tipo: "SITIO" },
   { nombre: "COLISEO", tipo: "SITIO" },
   { nombre: "CRUCE", tipo: "SITIO" },
   { nombre: "ESTABLECIMIENTO PUBLICO", tipo: "SITIO" },
+  { nombre: "ESTADIO", tipo: "SITIO" },
   { nombre: "ESTACIÓN DE FERROCARRIL", tipo: "SITIO" },
   { nombre: "ESTACIÓN DE GASOLINA", tipo: "SITIO" },
-  { nombre: "ESTADIO", tipo: "SITIO" },
   { nombre: "GASODUCTO", tipo: "SITIO" },
   { nombre: "HELIPUERTO", tipo: "SITIO" },
+  { nombre: "JARDIN BOTANICO", tipo: "SITIO" },
+  { nombre: "LAGO", tipo: "SITIO" },
   { nombre: "LAGUNA", tipo: "SITIO" },
+  { nombre: "MALECON", tipo: "SITIO" },
+  { nombre: "MALETERO", tipo: "SITIO" },
   { nombre: "MATADERO", tipo: "SITIO" },
+  { nombre: "MIRADOR", tipo: "SITIO" },
+  { nombre: "MONUMENTO", tipo: "SITIO" },
   { nombre: "MUELLE", tipo: "SITIO" },
   { nombre: "OLEODUCTO", tipo: "SITIO" },
   { nombre: "PARQUE", tipo: "SITIO" },
@@ -255,22 +259,14 @@ const opcionesConTipo = [
   { nombre: "PISTA DE ATERRIZAJE", tipo: "SITIO" },
   { nombre: "PLAZA DE MERCADO", tipo: "SITIO" },
   { nombre: "PLAZA DE TOROS", tipo: "SITIO" },
-  { nombre: "POLIDEPORTIVO", tipo: "SITIO" },
-
-  // Sitios adicionales
-  { nombre: "MALECON", tipo: "SITIO" },
-  { nombre: "MIRADOR", tipo: "SITIO" },
-  { nombre: "PUENTE", tipo: "SITIO" },
-  { nombre: "RIO", tipo: "SITIO" },
-  { nombre: "QUEBRADA", tipo: "SITIO" },
-  { nombre: "LAGO", tipo: "SITIO" },
-  { nombre: "MONUMENTO", tipo: "SITIO" },
-  { nombre: "JARDIN BOTANICO", tipo: "SITIO" },
-  { nombre: "ZOOLOGICO", tipo: "SITIO" },
-  { nombre: "CENTRO COMERCIAL", tipo: "SITIO" },
   { nombre: "PLAZOLETA", tipo: "SITIO" },
-  { nombre: "MALETERO", tipo: "SITIO" }
+  { nombre: "POLIDEPORTIVO", tipo: "SITIO" },
+  { nombre: "PUENTE", tipo: "SITIO" },
+  { nombre: "QUEBRADA", tipo: "SITIO" },
+  { nombre: "RIO", tipo: "SITIO" },
+  { nombre: "ZOOLOGICO", tipo: "SITIO" }
 ];
+
 
 
   // ====== MODAL: SELECT CON TIPO + INPUT READONLY ======
@@ -476,6 +472,7 @@ const opcionesConTipo = [
 </script>
 </body>
 </html>
+
 
 
 
