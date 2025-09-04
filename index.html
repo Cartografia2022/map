@@ -10,63 +10,14 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet-measure/dist/leaflet-measure.css" />
   <style>
     #map { height: 100vh; }
-    .controls {
-      position: absolute;
-      bottom: 10px;
-      left: 10px;
-      z-index: 1000;
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      font-family: sans-serif;
-    }
-    .controls select, .controls input, .controls button {
-      margin-top: 5px;
-      display: block;
-      width: 100%;
-    }
-    #modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.5);
-      z-index: 2000;
-    }
-    #modal-content {
-      background: white;
-      width: 320px;
-      max-width: calc(100% - 24px);
-      margin: 80px auto;
-      padding: 20px;
-      border-radius: 10px;
-      font-family: sans-serif;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    }
-    #modal label { font-size: 13px; color: #333; }
-    #modal select, #modal button, #modal textarea, #modal input {
-      margin-top: 8px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .streetview-btn {
-      display: inline-block;
-      padding: 6px 12px;
-      margin-top: 5px;
-      background-color: #f1c40f;
-      color: black !important;
-      border: none;
-      border-radius: 6px;
-      text-align: center;
-      text-decoration: none !important;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    .streetview-btn:hover {
-      background-color: #d4ac0d;
-    }
+    .controls { position: absolute; bottom: 10px; left: 10px; z-index:1000; background:white; padding:10px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.3); font-family:sans-serif; }
+    .controls select, .controls input, .controls button { margin-top:5px; display:block; width:100%; }
+    #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color: rgba(0,0,0,0.5); z-index:2000; }
+    #modal-content { background:white; width:320px; max-width: calc(100% - 24px); margin:80px auto; padding:20px; border-radius:10px; font-family:sans-serif; box-shadow:0 0 10px rgba(0,0,0,0.3); }
+    #modal label { font-size:13px; color:#333; }
+    #modal select, #modal button, #modal textarea, #modal input { margin-top:8px; width:100%; box-sizing:border-box; }
+    .streetview-btn { display:inline-block; padding:6px 12px; margin-top:5px; background-color:#f1c40f; color:black !important; border:none; border-radius:6px; text-align:center; text-decoration:none !important; font-size:14px; cursor:pointer; transition:background-color 0.3s ease; }
+    .streetview-btn:hover { background-color:#d4ac0d; }
   </style>
 </head>
 <body>
@@ -77,10 +28,9 @@
   <button onclick="downloadGeoJSON()">Exportar GeoJSON</button>
 </div>
 
-<!-- MODAL -->
 <div id="modal">
   <div id="modal-content">
-    <label for="modal-select">Selecciona Sitio/Institución :</label>
+    <label for="modal-select">Selecciona Sito/Institución :</label>
     <select id="modal-select"></select>
 
     <label for="modal-tipo">Tipo:</label>
@@ -101,48 +51,17 @@
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
 <script>
-  // ===== MAPA Y CAPAS =====
-  const map = L.map('map').setView([5.5, -73.4], 9);
-  const drawnItems = new L.FeatureGroup();
-  const labelLayer = new L.LayerGroup();
-  const layerTooltips = new Map();
+const map = L.map('map').setView([5.5, -73.4], 9);
+const drawnItems = new L.FeatureGroup();
+const labelLayer = new L.LayerGroup();
+const layerTooltips = new Map();
 
-  L.Control.geocoder({ defaultMarkGeocode: false })
-    .on('markgeocode', e => map.fitBounds(e.geocode.bbox)).addTo(map);
+// Contadores
+let siteCounter = 1;      // Sitios: 1,2,3...
+let instCounter = 0;      // Instituciones: A,B,C...
 
-  const baseMaps = {
-    "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map),
-    "Esri Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' }),
-    "CartoDB Light": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' }),
-    "Stamen Toner": L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', { attribution: 'Map tiles by Stamen Design' }),
-    "Google Earth Híbrido": L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'], attribution: '&copy; Google' })
-  };
+// Opciones NOMBRE + TIPO
 
-  const overlayMaps = { "Elementos Dibujados": drawnItems, "Etiquetas": labelLayer };
-  L.control.layers(baseMaps, overlayMaps).addTo(map);
-  map.addLayer(drawnItems);
-  map.addLayer(labelLayer);
-  L.control.measure({ primaryLengthUnit: 'meters', secondaryLengthUnit: 'kilometers' }).addTo(map);
-
-  const drawControl = new L.Control.Draw({ edit: { featureGroup: drawnItems }, draw: { polygon: true, polyline: true, rectangle: false, circle: false, circlemarker: false, marker: true } });
-  map.addControl(drawControl);
-
-  // ===== TOOLTIP PERMANENTE =====
-  function layerCenter(layer){ return layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter(); }
-  function createTooltip(nombre, layer) {
-    const tooltip = L.tooltip({ permanent: true, direction: 'top', offset: [0, -10] })
-      .setContent(nombre)
-      .setLatLng(layerCenter(layer));
-    labelLayer.addLayer(tooltip);
-    layerTooltips.set(layer._leaflet_id, tooltip);
-    layer.on('move', () => tooltip.setLatLng(layerCenter(layer)));
-  }
-  function updateTooltip(layer) {
-    const tooltip = layerTooltips.get(layer._leaflet_id);
-    if (tooltip) tooltip.setContent(layer.feature?.properties?.nombre || "Sin nombre");
-  }
-
-  // ===== LISTA NOMBRE + TIPO =====
 const opcionesConTipo = [
   { nombre: "ACUEDUCTO", tipo: "SITIO" },
   { nombre: "AEROGENERADOR", tipo: "SITIO" },
@@ -274,156 +193,221 @@ const opcionesConTipo = [
 ];
 
 
-  // ===== CONTADORES PARA ORDEN AUTOMÁTICO =====
-  let contadorSitios = 1;      
-  let contadorInstituciones = 0; 
-  const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+// ====== BASEMAPS Y OVERLAYS ======
+const baseMaps = {
+  "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map),
+  "Esri Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri'}),
+};
 
-  function asignarOrden(tipo){
-    if(tipo==="SITIO"){ return contadorSitios++; }
-    else if(tipo==="INSTITUCION"){ const letra = letras[contadorInstituciones % letras.length]; contadorInstituciones++; return letra; }
-    return "";
+const overlayMaps = { "Elementos Dibujados": drawnItems, "Etiquetas": labelLayer };
+
+L.control.layers(baseMaps, overlayMaps).addTo(map);
+map.addLayer(drawnItems);
+map.addLayer(labelLayer);
+L.control.measure({ primaryLengthUnit:'meters', secondaryLengthUnit:'kilometers' }).addTo(map);
+L.Control.geocoder({defaultMarkGeocode:false}).on('markgeocode', e=>map.fitBounds(e.geocode.bbox)).addTo(map);
+
+const drawControl = new L.Control.Draw({
+  edit: { featureGroup: drawnItems },
+  draw: { polygon:true, polyline:true, rectangle:false, circle:false, circlemarker:false, marker:true }
+});
+map.addControl(drawControl);
+
+// ====== TOOLTIP ======
+function layerCenter(layer){ return layer.getLatLng ? layer.getLatLng() : layer.getBounds().getCenter(); }
+
+function createTooltip(nombre, layer) {
+  const tooltip = L.tooltip({permanent:true,direction:'top',offset:[0,-10]}).setContent(nombre).setLatLng(layerCenter(layer));
+  labelLayer.addLayer(tooltip);
+  layerTooltips.set(layer._leaflet_id, tooltip);
+  layer.on('move',()=>{ tooltip.setLatLng(layerCenter(layer)); });
+}
+
+function updateTooltip(layer) {
+  const tooltip = layerTooltips.get(layer._leaflet_id);
+  if(tooltip){ tooltip.setLatLng(layerCenter(layer)); tooltip.setContent(layer.feature?.properties?.nombre || "Sin nombre"); }
+}
+
+// ====== MODAL ======
+function mostrarModalConTipo(defaultNombre, defaultTipo, descActual=""){
+  const modal = document.getElementById('modal');
+  const selectModal = document.getElementById('modal-select');
+  const tipoInput = document.getElementById('modal-tipo');
+  const descModal = document.getElementById('modal-desc');
+  const botonConfirm = document.getElementById('modal-confirm');
+  const botonCancel = document.getElementById('modal-cancel');
+
+  selectModal.innerHTML = '';
+  opcionesConTipo.forEach(opt=>{
+    const option = document.createElement('option');
+    option.value = `${opt.nombre}|${opt.tipo}`;
+    option.textContent = opt.nombre;
+    if(opt.nombre===defaultNombre && opt.tipo===defaultTipo) option.selected=true;
+    selectModal.appendChild(option);
+  });
+
+  function actualizarTipoDesdeSelect(){
+    const [n,t] = (selectModal.value||'|').split('|');
+    tipoInput.value = t||'';
   }
 
-  // ===== MODAL =====
-  async function mostrarModalConTipo(defaultNombre, defaultTipo, descActual="") {
-    const modal = document.getElementById('modal');
-    const selectModal = document.getElementById('modal-select');
-    const tipoInput = document.getElementById('modal-tipo');
-    const descModal = document.getElementById('modal-desc');
-    const botonConfirm = document.getElementById('modal-confirm');
-    const botonCancel = document.getElementById('modal-cancel');
+  actualizarTipoDesdeSelect();
+  selectModal.onchange = actualizarTipoDesdeSelect;
+  descModal.value = descActual;
 
-    selectModal.innerHTML = '';
-    opcionesConTipo.forEach(opt => {
-      const option = document.createElement('option');
-      option.value = `${opt.nombre}|${opt.tipo}`;
-      option.textContent = opt.nombre;
-      if(opt.nombre===defaultNombre && opt.tipo===defaultTipo) option.selected=true;
-      selectModal.appendChild(option);
-    });
-
-    function actualizarTipoDesdeSelect(){
-      const [n,t] = (selectModal.value || '|').split('|');
-      tipoInput.value = t || '';
-    }
-    actualizarTipoDesdeSelect();
-    selectModal.onchange = actualizarTipoDesdeSelect;
-    descModal.value = descActual || "";
-
-    return new Promise(resolve=>{
-      modal.style.display='block';
-      botonConfirm.onclick = ()=>{
-        modal.style.display='none';
-        const [nombre,tipo] = (selectModal.value||'|').split('|');
-        resolve({nombre,tipo,direccion:descModal.value});
-      };
-      botonCancel.onclick = ()=>{ modal.style.display='none'; resolve(null); };
-    });
-  }
-
-  // ===== CREAR ELEMENTO =====
-  map.on(L.Draw.Event.CREATED, async function(e){
-    const layer = e.layer;
-    if(layer instanceof L.Polygon && turf.kinks(layer.toGeoJSON()).features.length>0){
-      alert("ERROR: El polígono se cruza a sí mismo."); return;
-    }
-    const respuesta = await mostrarModalConTipo("ACUEDUCTO","SITIO");
-    if(!respuesta) return;
-    const {nombre,tipo,direccion} = respuesta;
-
-    const orden = asignarOrden(tipo);  // <-- asignar orden automáticamente
-
-    layer.feature = { type:"Feature", properties:{ nombre,tipo,direccion,orden } };
-    const center = layerCenter(layer);
-    let popupContent = `<strong>Nombre:</strong>${nombre}<br/><strong>Tipo:</strong>${tipo}<br/><strong>Orden:</strong>${orden}<br/>`;
-    if(direccion && direccion.trim()!=="") popupContent += `<strong>Dirección:</strong>${direccion}<br/>`;
-    if(layer instanceof L.Marker) popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank"><div class="streetview-btn">Abrir Street View</div></a>`;
-    layer.bindPopup(popupContent);
-    drawnItems.addLayer(layer);
-    createTooltip(nombre,layer);
-  });
-
-  // ===== EDITAR ELEMENTO =====
-  map.on(L.Draw.Event.EDITED, async function(e){
-    const editedLayers = e.layers;
-    let initNombre="ACUEDUCTO", initTipo="SITIO", initDesc="";
-    editedLayers.eachLayer(layer=>{
-      initNombre = layer.feature?.properties?.nombre || initNombre;
-      initTipo   = layer.feature?.properties?.tipo || initTipo;
-      initDesc   = layer.feature?.properties?.direccion || "";
-    });
-    const respuesta = await mostrarModalConTipo(initNombre,initTipo,initDesc);
-    if(!respuesta) return;
-    editedLayers.eachLayer(layer=>{
-      const {nombre,tipo,direccion} = respuesta;
-      if(!layer.feature) layer.feature={type:"Feature",properties:{}};
-      layer.feature.properties.nombre = nombre;
-      layer.feature.properties.tipo = tipo;
-      layer.feature.properties.direccion = direccion;
-      if(!layer.feature.properties.orden) layer.feature.properties.orden = asignarOrden(tipo);
-
-      const center = layerCenter(layer);
-      let popupContent = `<strong>Nombre:</strong>${nombre}<br/><strong>Tipo:</strong>${tipo}<br/><strong>Orden:</strong>${layer.feature.properties.orden}<br/>`;
-      if(direccion && direccion.trim()!=="") popupContent += `<strong>Dirección:</strong>${direccion}<br/>`;
-      if(layer instanceof L.Marker) popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank"><div class="streetview-btn">Abrir Street View</div></a>`;
-      layer.bindPopup(popupContent);
-      updateTooltip(layer);
-    });
-  });
-
-  // ===== ELIMINAR ELEMENTO =====
-  map.on(L.Draw.Event.DELETED,function(e){
-    e.layers.eachLayer(layer=>{
-      const tooltip = layerTooltips.get(layer._leaflet_id);
-      if(tooltip){ labelLayer.removeLayer(tooltip); layerTooltips.delete(layer._leaflet_id); }
-    });
-  });
-
-  // ===== CARGAR GEOJSON =====
-  document.getElementById('upload').addEventListener('change', function(e){
-    const file = e.target.files[0]; if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e){
-      const geojson = JSON.parse(e.target.result);
-      L.geoJSON(geojson, {
-        onEachFeature: function(feature, layer){
-          const nombre = feature.properties?.nombre || "Sin nombre";
-          const tipo   = feature.properties?.tipo || "";
-          const direccion = feature.properties?.direccion || "";
-          const orden  = feature.properties?.orden || "";
-          const center = layerCenter(layer);
-
-          let popupContent = `<strong>Nombre:</strong>${nombre}<br/>`;
-          if(tipo) popupContent += `<strong>Tipo:</strong>${tipo}<br/>`;
-          if(direccion && direccion.trim()!=="") popupContent += `<strong>Dirección:</strong>${direccion}<br/>`;
-          if(orden) popupContent += `<strong>Orden:</strong>${orden}<br/>`;
-          if(layer instanceof L.Marker) popupContent += `<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank"><div class="streetview-btn">Abrir Street View</div></a>`;
-          layer.feature = feature;
-          layer.bindPopup(popupContent);
-          drawnItems.addLayer(layer);
-          createTooltip(nombre,layer);
-        }
-      });
+  return new Promise(resolve=>{
+    modal.style.display='block';
+    botonConfirm.onclick=()=>{
+      modal.style.display='none';
+      const [nombre,tipo]=(selectModal.value||'|').split('|');
+      resolve({nombre,tipo,direccion:descModal.value});
     };
-    reader.readAsText(file);
+    botonCancel.onclick=()=>{ modal.style.display='none'; resolve(null); };
+  });
+}
+
+// ====== ACTUALIZAR CONTADORES ======
+function actualizarContadores(layer){
+  const props = layer.feature?.properties;
+  if(!props || !props.tipo || !props.orden) return;
+
+  if(props.tipo==="SITIO"){
+    const num = parseInt(props.orden);
+    if(!isNaN(num) && num>=siteCounter) siteCounter=num+1;
+  } else if(props.tipo==="INSTITUCION"){
+    const letra = props.orden?.toUpperCase();
+    if(letra){
+      const code = letra.charCodeAt(0)-65;
+      if(code>=instCounter) instCounter=code+1;
+    }
+  }
+}
+
+// ====== CREAR ELEMENTO ======
+map.on(L.Draw.Event.CREATED, async function(e){
+  const layer = e.layer;
+  if(layer instanceof L.Polygon && turf.kinks(layer.toGeoJSON()).features.length>0){
+    alert("ERROR: Polígono se cruza a sí mismo."); return;
+  }
+
+  const respuesta = await mostrarModalConTipo("ACUEDUCTO","SITIO");
+  if(!respuesta) return;
+
+  const {nombre,tipo,direccion} = respuesta;
+  const props = { nombre, tipo, direccion };
+
+  // ASIGNAR ORDEN AUTOMÁTICO
+  if(tipo==="SITIO"){ props.orden = siteCounter++; }
+  else if(tipo==="INSTITUCION"){ props.orden = String.fromCharCode(65+instCounter++); }
+
+  layer.feature = { type:"Feature", properties: props };
+
+  const center = layerCenter(layer);
+  let popupContent = `<strong>Nombre:</strong>${nombre}<br/><strong>Tipo:</strong>${tipo}<br/>`;
+  if(direccion?.trim()!=="") popupContent+=`<strong>Dirección:</strong>${direccion}<br/>`;
+  if(layer instanceof L.Marker){
+    popupContent+=`<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank"><div class="streetview-btn">Abrir Street View</div></a>`;
+  }
+  layer.bindPopup(popupContent);
+  drawnItems.addLayer(layer);
+  createTooltip(nombre,layer);
+});
+
+// ====== EDITAR ELEMENTO ======
+map.on(L.Draw.Event.EDITED, async function(e){
+  const editedLayers = e.layers;
+  let initNombre="ACUEDUCTO", initTipo="SITIO", initDesc="";
+  editedLayers.eachLayer(layer=>{
+    initNombre = layer.feature?.properties?.nombre || initNombre;
+    initTipo   = layer.feature?.properties?.tipo || initTipo;
+    initDesc   = layer.feature?.properties?.direccion || "";
   });
 
-  // ===== EXPORTAR GEOJSON =====
-  function downloadGeoJSON(){
-    const data = drawnItems.toGeoJSON();
-    if(!data.features.length){ alert("No hay elementos para exportar."); return; }
-    const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "mapa.geojson";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-  window.downloadGeoJSON = downloadGeoJSON;
+  const respuesta = await mostrarModalConTipo(initNombre, initTipo, initDesc);
+  if(!respuesta) return;
 
- // ====== CAPA MUNICIPIOS (OPCIONAL) ======
+  editedLayers.eachLayer(layer=>{
+    const {nombre,tipo,direccion}=respuesta;
+    if(!layer.feature) layer.feature={type:"Feature",properties:{}};
+    layer.feature.properties.nombre=nombre;
+    layer.feature.properties.tipo=tipo;
+    layer.feature.properties.direccion=direccion;
+
+    const center = layerCenter(layer);
+    let popupContent = `<strong>Nombre:</strong>${nombre}<br/><strong>Tipo:</strong>${tipo}<br/>`;
+    if(direccion?.trim()!=="") popupContent+=`<strong>Dirección:</strong>${direccion}<br/>`;
+    if(layer instanceof L.Marker){
+      popupContent+=`<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank"><div class="streetview-btn">Abrir Street View</div></a>`;
+    }
+    layer.bindPopup(popupContent);
+    updateTooltip(layer);
+  });
+});
+
+// ====== ELIMINAR ELEMENTO ======
+map.on(L.Draw.Event.DELETED, function(e){
+  e.layers.eachLayer(layer=>{
+    const tooltip = layerTooltips.get(layer._leaflet_id);
+    if(tooltip){ labelLayer.removeLayer(tooltip); layerTooltips.delete(layer._leaflet_id); }
+  });
+});
+
+// ====== CARGAR GEOJSON ======
+document.getElementById('upload').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const geojson = JSON.parse(e.target.result);
+    L.geoJSON(geojson,{
+      onEachFeature:function(feature, layer){
+        const nombre = feature.properties?.nombre || "Sin nombre";
+        const tipo = feature.properties?.tipo || "";
+        const direccion = feature.properties?.direccion || "";
+        layer.feature = feature;
+
+        // actualizar contadores según archivo cargado
+        actualizarContadores(layer);
+
+        const center = layerCenter(layer);
+        let popupContent = `<strong>Nombre:</strong>${nombre}<br/>`;
+        if(tipo) popupContent+=`<strong>Tipo:</strong>${tipo}<br/>`;
+        if(direccion?.trim()!=="") popupContent+=`<strong>Dirección:</strong>${direccion}<br/>`;
+        if(layer instanceof L.Marker){
+          popupContent+=`<a href="https://www.google.com/maps?q=&layer=c&cbll=${center.lat},${center.lng}" target="_blank"><div class="streetview-btn">Abrir Street View</div></a>`;
+        }
+
+        layer.bindPopup(popupContent);
+        drawnItems.addLayer(layer);
+        createTooltip(nombre,layer);
+      }
+    });
+  };
+  reader.readAsText(file);
+});
+
+// ====== EXPORTAR GEOJSON ======
+function downloadGeoJSON(){
+  const data = drawnItems.toGeoJSON();
+  if(!data.features.length){ alert("No hay elementos para exportar."); return; }
+
+  // agregar orden a cada feature antes de descargar
+  data.features.forEach(f=>{
+    if(!f.properties) f.properties={};
+    // ya tiene f.properties.orden asignado
+  });
+
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "mapa.geojson";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+window.downloadGeoJSON = downloadGeoJSON;
+
+  // ====== CAPA MUNICIPIOS (OPCIONAL) ======
   fetch('Municipios.geojson')
     .then(res => res.json())
     .then(data => {
@@ -438,6 +422,3 @@ const opcionesConTipo = [
 </script>
 </body>
 </html>
-
-
-
