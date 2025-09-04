@@ -298,7 +298,21 @@
     URL.revokeObjectURL(url);
   }
   window.downloadGeoJSON = downloadGeoJSON;
+
+ // ====== CAPA MUNICIPIOS (OPCIONAL) ======
+  fetch('Municipios.geojson')
+    .then(res => res.json())
+    .then(data => {
+      const capaBoyaca = L.geoJSON(data, {
+        style: { color: '#000000', weight: 2, fillOpacity: 0 }
+      });
+      capaBoyaca.addTo(map);
+      overlayMaps["Municipios"] = capaBoyaca;
+    })
+    .catch(()=>{ /* silencioso si no existe */ });
+
 </script>
 </body>
 </html>
+
 
