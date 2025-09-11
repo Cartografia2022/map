@@ -18,6 +18,9 @@
     #modal select, #modal button, #modal textarea, #modal input { margin-top:8px; width:100%; box-sizing:border-box; }
     .streetview-btn { display:inline-block; padding:6px 12px; margin-top:5px; background-color:#f1c40f; color:black !important; border:none; border-radius:6px; text-align:center; text-decoration:none !important; font-size:14px; cursor:pointer; transition:background-color 0.3s ease; }
     .streetview-btn:hover { background-color:#d4ac0d; }
+    #modal-desc {
+    text-transform: uppercase;
+}
   </style>
 </head>
 <body>
@@ -259,11 +262,16 @@ function mostrarModalConTipo(defaultNombre, defaultTipo, descActual=""){
 
   return new Promise(resolve=>{
     modal.style.display='block';
-    botonConfirm.onclick=()=>{
-      modal.style.display='none';
-      const [nombre,tipo]=(selectModal.value||'|').split('|');
-      resolve({nombre,tipo,direccion:descModal.value});
-    };
+    botonConfirm.onclick = () => {
+    modal.style.display = 'none';
+    const [nombre, tipo] = (selectModal.value || '|').split('|');
+    resolve({
+    nombre,
+    tipo,
+    direccion: descModal.value.toUpperCase() // <-- fuerza mayúsculas
+  });
+};
+
     botonCancel.onclick=()=>{ modal.style.display='none'; resolve(null); };
   });
 }
@@ -424,5 +432,6 @@ window.downloadGeoJSON = downloadGeoJSON;
 </script>
 </body>
 </html>
+
 
 
