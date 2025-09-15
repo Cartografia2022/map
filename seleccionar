@@ -28,7 +28,7 @@
 
 <div class="controls">
   <input type="file" id="upload" accept=".geojson" />
-  <button onclick="downloadGeoJSON()">Exportar GeoJSON</button>
+  <button onclick="downloadGeoJSON()">Descargar</button>
 </div>
 
 <div id="modal">
@@ -440,6 +440,7 @@ window.downloadGeoJSON = downloadGeoJSON;
 </script>
 </body>
 </html>
+
 
 
 
