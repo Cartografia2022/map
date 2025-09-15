@@ -214,7 +214,7 @@ L.control.measure({ primaryLengthUnit:'meters', secondaryLengthUnit:'kilometers'
 
 const drawControl = new L.Control.Draw({
   edit: { featureGroup: drawnItems },
-  draw: { polygon:true, polyline:true, rectangle:false, circle:false, circlemarker:false, marker:true }
+  draw: { polygon:false, polyline:false, rectangle:false, circle:false, circlemarker:false, marker:true }
 });
 map.addControl(drawControl);
 
@@ -440,6 +440,7 @@ window.downloadGeoJSON = downloadGeoJSON;
 </script>
 </body>
 </html>
+
 
 
 
