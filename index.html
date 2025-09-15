@@ -204,13 +204,13 @@ const baseMaps = {
   "Esri Satélite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri'}),
 };
 
+L.Control.geocoder({defaultMarkGeocode:false}).on('markgeocode', e=>map.fitBounds(e.geocode.bbox)).addTo(map);
 const overlayMaps = { "Elementos Dibujados": drawnItems, "Etiquetas": labelLayer };
-
 L.control.layers(baseMaps, overlayMaps).addTo(map);
 map.addLayer(drawnItems);
 map.addLayer(labelLayer);
 L.control.measure({ primaryLengthUnit:'meters', secondaryLengthUnit:'kilometers' }).addTo(map);
-L.Control.geocoder({defaultMarkGeocode:false}).on('markgeocode', e=>map.fitBounds(e.geocode.bbox)).addTo(map);
+
 
 const drawControl = new L.Control.Draw({
   edit: { featureGroup: drawnItems },
@@ -440,6 +440,7 @@ window.downloadGeoJSON = downloadGeoJSON;
 </script>
 </body>
 </html>
+
 
 
 
